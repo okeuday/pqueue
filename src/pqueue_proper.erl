@@ -26,20 +26,23 @@ command(_S) ->
     oneof([{call, ?SERVER, in, [value()]},
            {call, ?SERVER, in, [value(), priority()]},
            {call, ?SERVER, is_empty, []},
-%           {call, ?SERVER, is_queue, [PQ]}, %% Always assume we are calling with a Q
-           {call, ?SERVER, len, []}
-%           {call, ?SERVER, out, [PQ]},
-%%           {call, ?SERVER, out, [priority(InQ), PQ]},
-%%           {call, ?SERVER, pout, [priority(InQ), PQ]},
-%           {call, ?SERVER, to_list, [PQ]}]
-]).
+           {call, ?SERVER, is_queue, []},
+           {call, ?SERVER, len, []},
+           {call, ?SERVER, out, []},
+%%         {call, ?SERVER, out, [priority(InQ), PQ]},
+%%         {call, ?SERVER, pout, [priority(InQ), PQ]},
+           {call, ?SERVER, to_list, []}]).
 
+next_state(#state { in_queue = InQ } = S, _V, {call, _, out, _}) ->
+    S#state { in_queue = listq_rem(InQ) };
+next_state(S, _V, {call, _, to_list, _}) -> S;
+next_state(S, _V, {call, _, is_queue, _}) -> S;
 next_state(S, _V, {call, _, is_empty, _}) -> S;
 next_state(S, _V, {call, _, len, _}) -> S;
 next_state(#state { in_queue = InQ } = S, _V, {call, _, in, [Value, Prio]}) ->
-    S#state { in_queue = [{Prio, Value} | InQ] };
+    S#state { in_queue = listq_insert({Prio, Value}, InQ) };
 next_state(#state { in_queue = InQ } = S, _V, {call, _, in, [Value]}) ->
-    S#state { in_queue = [{0, Value} | InQ] }.
+    S#state { in_queue = listq_insert({0, Value}, InQ) }.
 
 precondition(_S, {call, _, out, _}) -> true;
 precondition(_S, {call, _, to_list, _}) -> true;
@@ -48,17 +51,12 @@ precondition(_S, {call, _, is_queue, _}) -> true;
 precondition(_S, {call, _, is_empty, _}) -> true;
 precondition(_S, {call, _, in, _}) -> true.
 
-postcondition(S, {call, _, out, _}, R) ->
-    case R of
-        {empty, _} ->
-            S#state.in_queue == [];
-        {{value, V}, _} ->
-            is_minimum(V, S#state.in_queue)
-    end;
+postcondition(#state { in_queue = InQ }, {call, _, out, _}, R) ->
+    R == listq_peek(InQ);
 postcondition(S, {call, _, to_list, _}, R) ->
-    R == lists:sort(S#state.in_queue);
+    R == listq_to_list(S#state.in_queue);
 postcondition(S, {call, _, len, _}, L) ->
-    L == length(S#state.in_queue);
+    L == listq_length(S#state.in_queue);
 postcondition(_S, {call, _, is_queue, _}, true) -> true;
 postcondition(S, {call, _, is_empty, _}, Res) ->
     Res == (S#state.in_queue == []);
@@ -87,37 +85,34 @@ qc_pq2() ->
 
 %% ----------------------------------------------------------------------
 
-remove_min(V, L) ->
-    case find_min(L) of
-        empty ->
-            exit(error);
-        {P, _} ->
-            remove_min(P, V, L)
-    end.
+%% A listq is a sorted list of priorities
+listq_insert({P, V}, []) ->
+    [{P, [V]}];
+listq_insert({P, V}, [{P1, _} | _] = LQ) when P < P1 ->
+    [{P, [V]} | LQ];
+listq_insert({P, V}, [{P1, Vs} | Next]) when P == P1 ->
+    [{P, Vs ++ [V]} | Next];
+listq_insert({P, V}, [{P1, Vs} | Next]) when P > P1 ->
+    [{P1, Vs} | listq_insert({P, V}, Next)].
 
+listq_to_list(L) ->
+    lists:concat(
+      [ Vals || {_Prio, Vals} <- L]).
 
-remove_min(P, V, [{P, V} | R]) -> R;
-remove_min(P, V, [K | R]) -> 
-    [K | remove_min(P, V, R)];
-remove_min(_P, _V, []) -> exit(error).
+listq_length(L) ->
+    lists:sum(
+      [ length(Vs) || {_Prio, Vs} <- L]).
 
-is_minimum(V, L) ->
-    case find_min(L) of
-        empty -> empty;
-        {_, V} -> true;
-        {_, _} -> false
-    end.
+listq_rem([]) ->
+    [];
+listq_rem([{_P, [_V]} | Next]) ->
+    Next;
+listq_rem([{P, [_V1 | Vs]} | Next]) ->
+    [{P, Vs} | Next].
 
-find_min([]) ->
+listq_peek([]) ->
     empty;
-find_min([{P, V} | R]) ->
-    find_min(P, V, R).
+listq_peek([{_P, [V | _]} | _]) ->
+    {value, V}.
 
-%% TODO: This one will stabilize-bug all over the place
-find_min(P, _V, [{P1, V1} | R]) when P1 =< P ->
-    find_min(P1, V1, R);
-find_min(P, V, [{P1, _V1} | R]) when P < P1 ->
-    find_min(P, V, R);
-find_min(P, V, []) ->
-    {P, V}.
 

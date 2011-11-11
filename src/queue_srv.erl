@@ -11,7 +11,9 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1, stop/0, len/0, in/1, in/2, is_empty/0]).
+-export([start_link/1, stop/0, len/0, in/1, in/2, is_empty/0,
+         out/0,
+         is_queue/0, to_list/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -52,6 +54,15 @@ len() ->
 
 is_empty() ->
     call(is_empty).
+
+is_queue() ->
+    call(is_queue).
+
+to_list() ->
+    call(to_list).
+
+out() ->
+    call(out).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -94,13 +105,17 @@ handle_call({in, Item}, _F, #state { q = Q, mod = M } = S) ->
 handle_call({in, Item, Prio}, _F, #state { q = Q, mod = M } = S) ->
     NQ = M:in(Item, Prio, Q),
     {reply, ok, S#state { q = NQ }};
-handle_call(len, _F, #state { q = Q, mod = M } = S) ->
-    R = M:len(Q),
+handle_call(out, _F, #state { q = Q, mod = M } = S) ->
+    {R, NQ} = M:out(Q),
+    {reply, R, S#state { q = NQ }};
+handle_call(Ty, _F, #state { q = Q, mod = M } = S) when Ty == is_queue;
+                                                        Ty == is_empty;
+                                                        Ty == len;
+                                                        Ty == to_list ->
+    R = M:Ty(Q),
     {reply, R, S};
-handle_call(is_empty, _F, #state { q = Q, mod = M } = S) ->
-    R = M:is_empty(Q),
-    {reply, R, S};
-handle_call(_Request, _From, State) ->
+handle_call(Req, From, State) ->
+    error_logger:info_report([{handle_call, Req, From, State}]),
     Reply = ok,
     {reply, Reply, State}.
 
