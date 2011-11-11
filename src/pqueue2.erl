@@ -1,61 +1,265 @@
-%% Skew heap solution based on Ulf Wiger's suggestion
+%%% -*- coding: utf-8; Mode: erlang; tab-width: 4; c-basic-offset: 4; indent-tabs-mode: nil -*-
+%%% ex: set softtabstop=4 tabstop=4 shiftwidth=4 expandtab fileencoding=utf-8:
+%%%
+%%%------------------------------------------------------------------------
+%%% @doc
+%%% ==Skew Heap Priority Queue.==
+%%% Ulf Wiger suggested pursuing a skew heap as an optimal Erlang priority
+%%% queue implementation. Testing has shown that this skew heap priority queue
+%%% does perform the fastest of the tested priority queue implementations.
+%%% This implementation was created to
+%%% avoid the slowness within the priority queue used by both RabbitMQ and Riak
+%%% (https://github.com/basho/riak_core/blob/master/src/priority_queue.erl).
+%%% @end
+%%%
+%%% BSD LICENSE
+%%% 
+%%% Copyright (c) 2011, Michael Truog <mjtruog at gmail dot com>
+%%% All rights reserved.
+%%% 
+%%% Redistribution and use in source and binary forms, with or without
+%%% modification, are permitted provided that the following conditions are met:
+%%% 
+%%%     * Redistributions of source code must retain the above copyright
+%%%       notice, this list of conditions and the following disclaimer.
+%%%     * Redistributions in binary form must reproduce the above copyright
+%%%       notice, this list of conditions and the following disclaimer in
+%%%       the documentation and/or other materials provided with the
+%%%       distribution.
+%%%     * All advertising materials mentioning features or use of this
+%%%       software must display the following acknowledgment:
+%%%         This product includes software developed by Michael Truog
+%%%     * The name of the author may not be used to endorse or promote
+%%%       products derived from this software without specific prior
+%%%       written permission
+%%% 
+%%% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+%%% CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+%%% INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+%%% OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+%%% DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+%%% CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+%%% SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+%%% BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+%%% SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+%%% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+%%% WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+%%% NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+%%% OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+%%% DAMAGE.
+%%%
+%%% @author Michael Truog <mjtruog [at] gmail (dot) com>
+%%% @copyright 2011 Michael Truog
+%%% @version 0.1.9 {@date} {@time}
+%%%------------------------------------------------------------------------
 
 -module(pqueue2).
--export([new/0, is_empty/1, in/3, out/1, pout/1, test/0]).
+-author('mjtruog [at] gmail (dot) com').
 
-new() ->
-    empty.
+%% external interface
+-export([in/2,
+         in/3,
+         is_empty/1,
+         is_queue/1,
+         len/1,
+         new/0,
+         out/1,
+         out/2,
+         pout/1,
+         to_list/1,
+         test/0]).
+
+%%%------------------------------------------------------------------------
+%%% External interface functions
+%%%------------------------------------------------------------------------
+
+-type pqueue2() ::
+    empty |
+    {integer(), pqueue2(), pqueue2(), element, term()} |
+    {integer(), pqueue2(), pqueue2(), queue, queue()}.
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Append an item to the tail of the 0 priority queue.===
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec in(term(), pqueue2()) -> pqueue2().
+
+in(Value, H) ->
+    in(Value, 0, H).
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Append an item to the tail of a specific priority queue.===
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec in(term(), integer(), pqueue2()) -> pqueue2().
+
+in(Value, P, H) ->
+    merge({P, empty, empty, element, Value}, H).
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Check if the priority queue is empty.===
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec is_empty(pqueue2()) -> 'true' | 'false'.
 
 is_empty(empty) ->
     true;
 is_empty(_) ->
     false.
 
-in(Value, P, H) ->
-    merge({P, empty, empty, element, Value}, H).
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Check if the priority queue type is as expected.===
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec is_queue(pqueue2()) -> 'true' | 'false'.
+
+is_queue(empty) ->
+    true;
+is_queue({P, _, _, element, _})
+    when is_integer(P) ->
+    true;
+is_queue({P, _, _, queue, Queue})
+    when is_integer(P) ->
+    queue:is_queue(Queue);
+is_queue(_) ->
+    false.
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Determine the length of a priority queue.===
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec len(pqueue2()) -> non_neg_integer().
+
+len(H) ->
+    len(0, out(H)).
+len(I, {empty, _}) ->
+    I;
+len(I, {{value, _}, H}) ->
+    len(I + 1, out(H)).
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Create a new priority queue.===
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec new() -> pqueue2().
+
+new() ->
+    empty.
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Take an item from the head of the priority queue.===
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec out(pqueue2()) ->
+    {{'value', term()}, pqueue2()} | {'empty', pqueue2()}.
 
 out(empty) ->
     {empty, empty};
+out({_, HL, HR, element, Value}) ->
+    {{value, Value}, merge(HL, HR)};
 out({P, HL, HR, queue, Queue}) ->
     case queue:out(Queue) of
-        {{value, Value}, NewQueue} ->
-            {{value, Value}, {P, HL, HR, queue, NewQueue}};
+        {{value, _} = Result, NewQueue} ->
+            {Result, {P, HL, HR, queue, NewQueue}};
         {empty, _} ->
             out(merge(HL, HR))
+    end.
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Take an item of a specific priority from the head of the queue.===
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec out(integer(), pqueue2()) ->
+    {{'value', term()}, pqueue2()} | {'empty', pqueue2()}.
+
+out(_, empty) ->
+    {empty, empty};
+out(P, {P1, _, _, _, _} = H) when P < P1 ->
+    {empty, H};
+out(P, {P1, HL1, HR1, T, D}) when P > P1 ->
+    case out(P, HL1) of
+        {{value, _} = Result, HL2} ->
+            {Result, {P1, HL2, HR1, T, D}};
+        {empty, HL2} ->
+            case out(P, HR1) of
+                {{value, _} = Result, HR2} ->
+                    {Result, {P1, HL2, HR2, T, D}};
+                {empty, HR2} ->
+                    {empty, {P1, HL2, HR2, T, D}}
+            end
     end;
-out({_, HL, HR, element, Value}) ->
-    {{value, Value}, merge(HL, HR)}.
+out(P, {P, HL, HR, element, Value}) ->
+    {{value, Value}, merge(HL, HR)};
+out(P, {P, HL, HR, queue, Queue}) ->
+    case queue:out(Queue) of
+        {{value, _} = Result, NewQueue} ->
+            {Result, {P, HL, HR, queue, NewQueue}};
+        {empty, _} ->
+            out(P, merge(HL, HR))
+    end.
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Take an item from the head of the priority queue.===
+%% Includes the priority in the return value.
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec pout(pqueue2()) ->
+    {{'value', term(), integer()}, pqueue2()} | {'empty', pqueue2()}.
 
 pout(empty) ->
     {empty, empty};
+pout({P, HL, HR, element, Value}) ->
+    {{value, Value, P}, merge(HL, HR)};
 pout({P, HL, HR, queue, Queue}) ->
     case queue:out(Queue) of
         {{value, Value}, NewQueue} ->
             {{value, Value, P}, {P, HL, HR, queue, NewQueue}};
         {empty, _} ->
             pout(merge(HL, HR))
-    end;
-pout({P, HL, HR, element, Value}) ->
-    {{value, Value, P}, merge(HL, HR)}.
+    end.
 
-merge(empty, H) ->
-    H;
-merge(H, empty) ->
-    H;
-merge({P1, HL1, HR1, T, D}, {P2, _, _, _, _} = H2) when P1 < P2 ->
-    {P1, HL1, merge(HR1, H2), T, D};
-merge({P1, _, _, _, _} = H1, {P2, HL2, HR2, T, D}) when P1 > P2 ->
-    {P2, merge(H1, HL2), HR2, T, D};
-merge({P, HL1, HR1, element, Value1}, {P, HL2, HR2, element, Value2}) ->
-    {P, merge(HL1, HR1), merge(HL2, HR2), queue,
-     queue:in(Value2, queue:in(Value1, queue:new()))};
-merge({P, HL1, HR1, queue, Queue}, {P, HL2, HR2, element, Value}) ->
-    {P, merge(HL1, HR1), merge(HL2, HR2), queue, queue:in(Value, Queue)};
-merge({P, HL1, HR1, element, Value}, {P, HL2, HR2, queue, Queue}) ->
-    {P, merge(HL1, HR1), merge(HL2, HR2), queue, queue:in(Value, Queue)}.
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Convert the priority queue to a list.===
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec to_list(pqueue2()) -> list(term()).
+
+to_list(H) ->
+    to_list([], out(H)).
+to_list(L, {empty, _}) ->
+    lists:reverse(L);
+to_list(L, {{value, Value}, H}) ->
+    to_list([Value | L], out(H)).
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Regression test.===
+%% @end
+%%-------------------------------------------------------------------------
 
 test() ->
     Q0 = pqueue2:new(),
+    true = pqueue2:is_queue(Q0),
     Q1 = pqueue2:in(20, 20, Q0),
     Q2 = pqueue2:in(19, 19, Q1),
     Q3 = pqueue2:in(18, 18, Q2),
@@ -138,16 +342,23 @@ test() ->
     Q80 = pqueue2:in(18, 18, Q79),
     Q81 = pqueue2:in(19, 19, Q80),
     Q82 = pqueue2:in(20, 20, Q81),
+    true = pqueue2:is_queue(Q82),
+    82 = pqueue2:len(Q82),
+    [-20, -20, -19, -19, -18, -18, -17, -17, -16, -16, -15, -15, -14, -14,
+     -13, -13, -12, -12, -11, -11, -10, -10, -9, -9, -8, -8, -7, -7, -6, -6,
+     -5, -5, -4, -4, -3, -3, -2, -2, -1, -1, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4,
+     5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
+     15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20] = pqueue2:to_list(Q82),
     {{value, -20}, Q83} = pqueue2:out(Q82),
     {{value, -20}, Q84} = pqueue2:out(Q83),
     {{value, -19}, Q85} = pqueue2:out(Q84),
     {{value, -19}, Q86} = pqueue2:out(Q85),
     {{value, -18}, Q87} = pqueue2:out(Q86),
     {{value, -18}, Q88} = pqueue2:out(Q87),
-    %{{value, 0}, Q89} = pqueue2:out(0, Q88),
-    %{{value, 0}, Q90} = pqueue2:out(0, Q89),
-    %{empty, _} = pqueue2:out(0, Q90),
-    {{value, -17, -17}, Q91} = pqueue2:pout(Q88),
+    {{value, 0}, Q89} = pqueue2:out(0, Q88),
+    {{value, 0}, Q90} = pqueue2:out(0, Q89),
+    {empty, _} = pqueue2:out(0, Q90),
+    {{value, -17, -17}, Q91} = pqueue2:pout(Q90),
     {{value, -17, -17}, Q92} = pqueue2:pout(Q91),
     {{value, -16, -16}, Q93} = pqueue2:pout(Q92),
     {{value, -16, -16}, Q94} = pqueue2:pout(Q93),
@@ -180,9 +391,7 @@ test() ->
     {{value, -2, -2}, Q121} = pqueue2:pout(Q120),
     {{value, -2, -2}, Q122} = pqueue2:pout(Q121),
     {{value, -1, -1}, Q123} = pqueue2:pout(Q122),
-    {{value, -1, -1}, Q123a} = pqueue2:pout(Q123),
-    {{value, 0, 0}, Q123b} = pqueue2:pout(Q123a),
-    {{value, 0, 0}, Q124} = pqueue2:pout(Q123b),
+    {{value, -1, -1}, Q124} = pqueue2:pout(Q123),
     {{value, 1, 1}, Q125} = pqueue2:pout(Q124),
     {{value, 1, 1}, Q126} = pqueue2:pout(Q125),
     {{value, 2, 2}, Q127} = pqueue2:pout(Q126),
@@ -227,3 +436,24 @@ test() ->
     {empty, Q165} = pqueue2:pout(Q164),
     true = pqueue2:is_empty(Q165),
     ok.
+
+%%%------------------------------------------------------------------------
+%%% Private functions
+%%%------------------------------------------------------------------------
+
+merge(empty, H) ->
+    H;
+merge(H, empty) ->
+    H;
+merge({P1, HL1, HR1, T, D}, {P2, _, _, _, _} = H2) when P1 < P2 ->
+    {P1, HL1, merge(HR1, H2), T, D};
+merge({P1, _, _, _, _} = H1, {P2, HL2, HR2, T, D}) when P1 > P2 ->
+    {P2, merge(H1, HL2), HR2, T, D};
+merge({P, HL1, HR1, element, Value1}, {P, HL2, HR2, element, Value2}) ->
+    {P, merge(HL1, HR1), merge(HL2, HR2), queue,
+     queue:from_list([Value2, Value1])};
+merge({P, HL1, HR1, queue, Queue}, {P, HL2, HR2, element, Value}) ->
+    {P, merge(HL1, HR1), merge(HL2, HR2), queue, queue:in(Value, Queue)};
+merge({P, HL1, HR1, element, Value}, {P, HL2, HR2, queue, Queue}) ->
+    {P, merge(HL1, HR1), merge(HL2, HR2), queue, queue:in(Value, Queue)}.
+

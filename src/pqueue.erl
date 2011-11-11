@@ -3,14 +3,10 @@
 %%%
 %%%------------------------------------------------------------------------
 %%% @doc
-%%% ==A Priority Queue.==
-%%% Normally a priority queue is implemented using a heap.  However, in
-%%% Erlang a heap can become slow compared to other approaches
-%%% (even when trying to use a skew binomial heap based on Okasaki's
-%%%  source code and suggestions).  So, this priority queue implementation
-%%% depends on a static number of priorities (-20 (high) to 20 (low))
-%%% so that tuple access times can be exploited for quick in/out
-%%% priority queue operations.  This implementation was created to
+%%% ==Static Priority Queue.==
+%%% This priority queue implementation depends on a static number of priorities
+%%% (-20 (high) to 20 (low)) so that tuple access times can be exploited for
+%%% quick in/out priority queue operations.  This implementation was created to
 %%% avoid the slowness within the priority queue used by both RabbitMQ and Riak
 %%% (https://github.com/basho/riak_core/blob/master/src/priority_queue.erl).
 %%% @end
