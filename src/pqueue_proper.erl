@@ -29,10 +29,12 @@ command(_S) ->
            {call, ?SERVER, is_queue, []},
            {call, ?SERVER, len, []},
            {call, ?SERVER, out, []},
-%%         {call, ?SERVER, out, [priority(InQ), PQ]},
-%%         {call, ?SERVER, pout, [priority(InQ), PQ]},
+%           {call, ?SERVER, out, [priority(InQ)]},
+           {call, ?SERVER, pout, []},
            {call, ?SERVER, to_list, []}]).
 
+next_state(#state { in_queue = InQ } = S, _V, {call, _, pout, _}) ->
+    S#state { in_queue = listq_rem(InQ) };
 next_state(#state { in_queue = InQ } = S, _V, {call, _, out, _}) ->
     S#state { in_queue = listq_rem(InQ) };
 next_state(S, _V, {call, _, to_list, _}) -> S;
@@ -44,13 +46,11 @@ next_state(#state { in_queue = InQ } = S, _V, {call, _, in, [Value, Prio]}) ->
 next_state(#state { in_queue = InQ } = S, _V, {call, _, in, [Value]}) ->
     S#state { in_queue = listq_insert({0, Value}, InQ) }.
 
-precondition(_S, {call, _, out, _}) -> true;
-precondition(_S, {call, _, to_list, _}) -> true;
-precondition(_S, {call, _, len, _}) -> true;
-precondition(_S, {call, _, is_queue, _}) -> true;
-precondition(_S, {call, _, is_empty, _}) -> true;
-precondition(_S, {call, _, in, _}) -> true.
+precondition(_S, _Call) ->
+    true. % No limitation on the things we can call at all.
 
+postcondition(#state { in_queue = InQ }, {call, _, pout, _}, R) ->
+    R == listq_ppeek(InQ);
 postcondition(#state { in_queue = InQ }, {call, _, out, _}, R) ->
     R == listq_peek(InQ);
 postcondition(S, {call, _, to_list, _}, R) ->
@@ -114,5 +114,10 @@ listq_peek([]) ->
     empty;
 listq_peek([{_P, [V | _]} | _]) ->
     {value, V}.
+
+listq_ppeek([]) ->
+    empty;
+listq_ppeek([{P, [V | _]} | _]) ->
+    {value, V, P}.
 
 
