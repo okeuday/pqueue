@@ -12,7 +12,7 @@
 
 %% API
 -export([start_link/1, stop/0, len/0, in/1, in/2, is_empty/0,
-         out/0, pout/0,
+         out/0, out/1, pout/0,
          is_queue/0, to_list/0]).
 
 %% gen_server callbacks
@@ -64,6 +64,9 @@ to_list() ->
 out() ->
     call(out).
 
+out(P) ->
+    call({out, P}).
+
 pout() ->
     call(pout).
 
@@ -108,6 +111,9 @@ handle_call({in, Item}, _F, #state { q = Q, mod = M } = S) ->
 handle_call({in, Item, Prio}, _F, #state { q = Q, mod = M } = S) ->
     NQ = M:in(Item, Prio, Q),
     {reply, ok, S#state { q = NQ }};
+handle_call({out, P},         _F, #state { q = Q, mod = M } = S) ->
+    {R, NQ} = M:out(P, Q),
+    {reply, R, S#state { q = NQ }};
 handle_call(Ty, _F, #state { q = Q, mod = M } = S) when Ty == out;
                                                         Ty == pout ->
     {R, NQ} = M:Ty(Q),

@@ -16,26 +16,32 @@
 priority() ->
     integer(-20, 20).
 
+%% Selects priorities we have added
+priority(InQ) ->
+    elements([P || {P, _} <- InQ]).
+
 value() ->
     integer().
 
 initial_state() ->
     #state { in_queue = [] }.
 
-command(_S) ->
+command(#state { in_queue = InQ }) ->
     oneof([{call, ?SERVER, in, [value()]},
            {call, ?SERVER, in, [value(), priority()]},
            {call, ?SERVER, is_empty, []},
            {call, ?SERVER, is_queue, []},
            {call, ?SERVER, len, []},
-           {call, ?SERVER, out, []},
-%           {call, ?SERVER, out, [priority(InQ)]},
-           {call, ?SERVER, pout, []},
+           {call, ?SERVER, out, []}] ++
+          [ {call, ?SERVER, out, [priority(InQ)]} || InQ =/= []] ++
+          [{call, ?SERVER, pout, []},
            {call, ?SERVER, to_list, []}]).
 
-next_state(#state { in_queue = InQ } = S, _V, {call, _, pout, _}) ->
+next_state(#state { in_queue = InQ } = S, _V, {call, _, out, []}) ->
     S#state { in_queue = listq_rem(InQ) };
-next_state(#state { in_queue = InQ } = S, _V, {call, _, out, _}) ->
+next_state(#state { in_queue = InQ } = S, _V, {call, _, out, [Prio]}) ->
+    S#state { in_queue = listq_rem(InQ, Prio) };
+next_state(#state { in_queue = InQ } = S, _V, {call, _, pout, _}) ->
     S#state { in_queue = listq_rem(InQ) };
 next_state(S, _V, {call, _, to_list, _}) -> S;
 next_state(S, _V, {call, _, is_queue, _}) -> S;
@@ -49,6 +55,8 @@ next_state(#state { in_queue = InQ } = S, _V, {call, _, in, [Value]}) ->
 precondition(_S, _Call) ->
     true. % No limitation on the things we can call at all.
 
+postcondition(#state { in_queue = InQ }, {call, _, out, [Prio]}, R) ->
+    R == listq_prio_peek(InQ, Prio);
 postcondition(#state { in_queue = InQ }, {call, _, pout, _}, R) ->
     R == listq_ppeek(InQ);
 postcondition(#state { in_queue = InQ }, {call, _, out, _}, R) ->
@@ -110,10 +118,26 @@ listq_rem([{_P, [_V]} | Next]) ->
 listq_rem([{P, [_V1 | Vs]} | Next]) ->
     [{P, Vs} | Next].
 
+listq_rem([], _P) ->
+    [];
+listq_rem([{P, [_]} | Next], P) ->
+    Next;
+listq_rem([{P, [_ | Vs]} | Next], P) ->
+    [{P, Vs} | Next];
+listq_rem([{P1, Vs} | Next], P) ->
+    [{P1, Vs} | listq_rem(Next, P)].
+
 listq_peek([]) ->
     empty;
 listq_peek([{_P, [V | _]} | _]) ->
     {value, V}.
+
+listq_prio_peek([{P, [V | _]} | _], P) ->
+    {value, V};
+listq_prio_peek([{_P1, _} | Next], P) ->
+    listq_prio_peek(Next, P);
+listq_prio_peek([], _P) ->
+    empty.
 
 listq_ppeek([]) ->
     empty;
