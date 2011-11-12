@@ -434,7 +434,7 @@ test() ->
     {{value, 19, 19}, Q162} = pqueue2:pout(Q161),
     {{value, 20, 20}, Q163} = pqueue2:pout(Q162),
     {{value, 20, 20}, Q164} = pqueue2:pout(Q163),
-    false = pqueue2:is_empty(Q164),
+    true = pqueue2:is_empty(Q164),
     {empty, Q165} = pqueue2:pout(Q164),
     true = pqueue2:is_empty(Q165),
     % test case 1, based on proper testing
