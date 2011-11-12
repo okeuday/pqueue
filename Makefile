@@ -1,5 +1,5 @@
 all:
-	rebar compile
+	PATH=.:${PATH} rebar compile
 
 console:
 	erl -pa ebin

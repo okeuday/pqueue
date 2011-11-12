@@ -89,6 +89,7 @@ qc_pq() ->
     proper:quickcheck(pqueue_proper:correct(pqueue)).
 
 qc_pq2() ->
+    %proper:quickcheck(pqueue_proper:correct(pqueue2), [{numtests, 10000}]).
     proper:quickcheck(pqueue_proper:correct(pqueue2)).
 
 %% ----------------------------------------------------------------------

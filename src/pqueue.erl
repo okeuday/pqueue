@@ -134,8 +134,31 @@ in(X, P, Q) ->
 
 is_empty({empty, _, _, _, _, _, _, _}) ->
     true;
-is_empty(_) ->
-    false.
+is_empty({_,
+         {Qn20, Qn19, Qn18, Qn17, Qn16, Qn15, Qn14},
+         {Qn13, Qn12, Qn11, Qn10, Qn9, Qn8, Qn7},
+         {Qn6, Qn5, Qn4, Qn3, Qn2, Qn1},
+         Q0,
+         {Qp1, Qp2, Qp3, Qp4, Qp5, Qp6},
+         {Qp7, Qp8, Qp9, Qp10, Qp11, Qp12, Qp13},
+         {Qp14, Qp15, Qp16, Qp17, Qp18, Qp19, Qp20}}) ->
+    queue:is_empty(Qn20) and queue:is_empty(Qn19) and queue:is_empty(Qn18) and
+    queue:is_empty(Qn17) and queue:is_empty(Qn16) and queue:is_empty(Qn15) and
+    queue:is_empty(Qn14) and
+    queue:is_empty(Qn13) and queue:is_empty(Qn12) and queue:is_empty(Qn11) and
+    queue:is_empty(Qn10) and queue:is_empty(Qn9) and queue:is_empty(Qn8) and
+    queue:is_empty(Qn7) and
+    queue:is_empty(Qn6) and queue:is_empty(Qn5) and queue:is_empty(Qn4) and
+    queue:is_empty(Qn3) and queue:is_empty(Qn2) and queue:is_empty(Qn1) and
+    queue:is_empty(Q0) and
+    queue:is_empty(Qp1) and queue:is_empty(Qp2) and queue:is_empty(Qp3) and
+    queue:is_empty(Qp4) and queue:is_empty(Qp5) and queue:is_empty(Qp6) and
+    queue:is_empty(Qp7) and queue:is_empty(Qp8) and queue:is_empty(Qp9) and
+    queue:is_empty(Qp10) and queue:is_empty(Qp11) and queue:is_empty(Qp12) and
+    queue:is_empty(Qp13) and
+    queue:is_empty(Qp14) and queue:is_empty(Qp15) and queue:is_empty(Qp16) and
+    queue:is_empty(Qp17) and queue:is_empty(Qp18) and queue:is_empty(Qp19) and
+    queue:is_empty(Qp20).
 
 %%-------------------------------------------------------------------------
 %% @doc
