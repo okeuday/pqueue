@@ -13,8 +13,8 @@ Michael Truog (mjtruog [at] gmail (dot) com)
 Thanks
 ------
 
-Jesper Louis andersen     PropEr integration and testing
-Ulf Wiger                 Suggestions and Insight
+* Jesper Louis andersen (PropEr integration and testing)
+* Ulf Wiger (suggestions and insight)
 
 License
 -------
