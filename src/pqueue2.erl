@@ -5,11 +5,8 @@
 %%% @doc
 %%% ==Skew Heap Priority Queue.==
 %%% Ulf Wiger suggested pursuing a skew heap as an optimal Erlang priority
-%%% queue implementation. Testing has shown that this skew heap priority queue
-%%% does perform the fastest of the tested priority queue implementations.
-%%% This implementation was created to
-%%% avoid the slowness within the priority queue used by both RabbitMQ and Riak
-%%% (https://github.com/basho/riak_core/blob/master/src/priority_queue.erl).
+%%% queue implementation. Unfortunately, testing has shown this solution to
+%%% be more than 2 times slower than pqueue.
 %%% @end
 %%%
 %%% BSD LICENSE
