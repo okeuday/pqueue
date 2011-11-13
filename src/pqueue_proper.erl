@@ -33,7 +33,7 @@ command(#state { in_queue = InQ }) ->
            {call, ?SERVER, is_queue, []},
            {call, ?SERVER, len, []},
            {call, ?SERVER, out, []}] ++
-          [ {call, ?SERVER, out, [priority(InQ)]} || InQ =/= []] ++
+          [{call, ?SERVER, out, [priority(InQ)]} || InQ =/= []] ++
           [{call, ?SERVER, pout, []},
            {call, ?SERVER, to_list, []}]).
 
@@ -85,12 +85,15 @@ correct(M) ->
                               aggregate(command_names(Cmds), Result =:= ok))
                 end)).
 
+qc_opts() ->
+    [{numtests, 1500}].
+     
 qc_pq() ->
-    proper:quickcheck(pqueue_proper:correct(pqueue)).
+    proper:quickcheck(pqueue_proper:correct(pqueue), qc_opts()).
 
 qc_pq2() ->
     %proper:quickcheck(pqueue_proper:correct(pqueue2), [{numtests, 10000}]).
-    proper:quickcheck(pqueue_proper:correct(pqueue2)).
+    proper:quickcheck(pqueue_proper:correct(pqueue2), qc_opts()).
 
 %% ----------------------------------------------------------------------
 
