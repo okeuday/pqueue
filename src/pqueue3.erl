@@ -62,6 +62,7 @@
          is_queue/1,   % O(1)
          len/1,        % O(N)
          new/0,        % O(1)
+         new/1,        % O(1)
          out/1,        % O(1) amortized, O(N) worst case
          out/2,        % O(1) amortized, O(N) worst case
          pout/1,       % O(1) amortized, O(N) worst case
@@ -186,7 +187,7 @@ new(Options) ->
     MiddleZero = proplists:get_value(middle_priority_zero, Options, true),
     Offset = if
         MiddleZero =:= true ->
-            erlang:trunc((Size / 2) - 1);
+            erlang:round((Size / 2) + 0.5) - 1;
         true ->
             0
     end,
@@ -274,7 +275,6 @@ create([I | Is]) ->
     erlang:make_tuple(I + 1, create(Is)).
 
 in_queue({I1}, Value, Bins1) ->
-    io:format("~p~n", [erlang:element(I1, Bins1)]),
     erlang:setelement(I1, Bins1, queue:in(Value, erlang:element(I1, Bins1)));
 
 in_queue({I1, I2}, Value, Bins1) ->
