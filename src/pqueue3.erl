@@ -3,11 +3,12 @@
 %%%
 %%%------------------------------------------------------------------------
 %%% @doc
-%%% ==Priority Queue.==
+%%% ==A Large Priority Queue.==
 %%% This priority queue implementation depends on layered tuples, so that tuple
-%%% access times can be exploited for quick in/out priority queue operations.
-%%% This implementation was created to avoid the slowness within the
-%%% priority queue used by both RabbitMQ and Riak
+%%% access times can be exploited for quick in/out priority queue operations
+%%% when using 64 or more total priorities. This implementation was created
+%%% to avoid the slowness within the priority queue used by
+%%% both RabbitMQ and Riak
 %%% (https://github.com/basho/riak_core/blob/master/src/priority_queue.erl).
 %%% @end
 %%%
@@ -206,8 +207,9 @@ new(Options) ->
 out({_, _, empty, _} = Q) ->
     {empty, Q};
 out({Size, Offset, I, Bins}) ->
-    {Result, NewI,
-     NewBins} = out_check(I, Size, out_queue(layer_indexes(Size, I), Bins)),
+    {Result, NewI, NewBins} = out_check(
+        I, Size, out_queue(layer_indexes(Size, I), Bins)
+    ),
     {Result, {Size, Offset, NewI, NewBins}}.
 
 %%-------------------------------------------------------------------------
