@@ -4,7 +4,7 @@
 
 -behaviour(proper_statem).
 
--export([qc_pq/0, qc_pq2/0, qc_pq3/0, correct/1]).
+-export([qc_pq/0, qc_pq2/0, qc_pq3/0, qc_pq4/0, correct/1]).
 
 -export([command/1, initial_state/0, next_state/3, postcondition/3,
          precondition/2]).
@@ -96,6 +96,9 @@ qc_pq2() ->
 
 qc_pq3() ->
     proper:quickcheck(pqueue_proper:correct(pqueue3), qc_opts()).
+
+qc_pq4() ->
+    proper:quickcheck(pqueue_proper:correct(pqueue4), qc_opts()).
 
 %% ----------------------------------------------------------------------
 
