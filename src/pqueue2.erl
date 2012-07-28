@@ -471,3 +471,18 @@ merge({P, HL1, HR1, queue, Queue}, {P, HL2, HR2, element, Value}) ->
 merge({P, HL1, HR1, element, Value}, {P, HL2, HR2, queue, Queue}) ->
     {P, merge(HL1, HR1), merge(HL2, HR2), queue, queue:in(Value, Queue)}.
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+internal_test_() ->
+    [
+        {"internal tests", ?_assertEqual(ok, test())}
+    ].
+
+proper_test_() ->
+    {timeout, 600, [
+        {"proper tests", ?_assert(pqueue_proper:qc_pq2())}
+    ]}.
+
+-endif.
+

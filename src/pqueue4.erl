@@ -303,6 +303,7 @@ to_list(L, {{value, Value}, Q}) ->
     to_list([Value | L], out(Q)).
 
 %%-------------------------------------------------------------------------
+%% @private
 %% @doc
 %% ===Regression test.===
 %% @end
@@ -492,6 +493,7 @@ test() ->
 %%% Private functions
 %%%------------------------------------------------------------------------
 
+%% @hidden
 -define(FILTER_P_Qn128(P, V),
 filter_priority(P, F,
                 {Pc,
@@ -1793,6 +1795,7 @@ filter_priority(0, F,
                  Qp118, Qp119, Qp120, Qp121, Qp122, Qp123,
                  Qp124, Qp125, Qp126, Qp127, queue:filter(F, Qp128)}).
 
+%% @hidden
 -define(IN_HIGHER_Qn128(P, V),
 in_higher(P,
           {_,
@@ -3094,6 +3097,7 @@ in_higher(0,
                   Qp118, Qp119, Qp120, Qp121, Qp122, Qp123,
                   Qp124, Qp125, Qp126, Qp127, queue:in(X, Qp128)}).
 
+%% @hidden
 -define(IN_LOWER_Qn128(P, V),
 in_lower(P,
           {Pc,
@@ -4395,6 +4399,7 @@ in_lower(0,
                  Qp118, Qp119, Qp120, Qp121, Qp122, Qp123,
                  Qp124, Qp125, Qp126, Qp127, queue:in(X, Qp128)}).
 
+%% @hidden
 -define(OUT_CURRENT_Qn128(P, V1, V2, V3),
 out_current(P,
             {_,
@@ -6095,6 +6100,7 @@ out_current(128,
                Qp121, Qp122, Qp123, Qp124, Qp125, Qp126, Qp127, NewQp128}}}
     end.
 
+%% @hidden
 -define(OUT_CURRENT_P_Qn128(P, V1, V2, V3),
 out_current_p(P,
               {_,
@@ -7777,6 +7783,7 @@ out_current_p(128,
                Qp121, Qp122, Qp123, Qp124, Qp125, Qp126, Qp127, NewQp128}}}
     end.
 
+%% @hidden
 -define(OUT_SPECIFIC_Qn128(P, V1, V2, V3),
 out_specific(P,
              {Pc,
@@ -9367,4 +9374,19 @@ out_specific(0,
                     {Qp113, Qp114, Qp115, Qp116, Qp117,
                      Qp118, Qp119, Qp120, Qp121, Qp122, Qp123,
                      Qp124, Qp125, Qp126, Qp127, NewQp128}).
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+internal_test_() ->
+    [
+        {"internal tests", ?_assertEqual(ok, test())}
+    ].
+
+proper_test_() ->
+    {timeout, 600, [
+        {"proper tests", ?_assert(pqueue_proper:qc_pq4())}
+    ]}.
+
+-endif.
 

@@ -86,7 +86,7 @@ correct(M) ->
                 end)).
 
 qc_opts() ->
-    [{numtests, 1500}].
+    [{numtests, 10000}].
      
 qc_pq() ->
     proper:quickcheck(pqueue_proper:correct(pqueue), qc_opts()).

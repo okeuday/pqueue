@@ -2208,3 +2208,19 @@ out_specific(20,
     {Value,
      {Pc, Qsn14, Qsn7, Qsn1, Q0, Qsp1, Qsp7,
       {Qp14, Qp15, Qp16, Qp17, Qp18, Qp19, NewQp20}}}.
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+internal_test_() ->
+    [
+        {"internal tests", ?_assertEqual(ok, test())}
+    ].
+
+proper_test_() ->
+    {timeout, 600, [
+        {"proper tests", ?_assert(pqueue_proper:qc_pq())}
+    ]}.
+
+-endif.
+
