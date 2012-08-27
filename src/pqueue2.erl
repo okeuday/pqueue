@@ -107,8 +107,8 @@ in(Value, P, H) ->
 
 is_empty(empty) ->
     true;
-is_empty({_, empty, empty, queue, Queue}) ->
-    queue:is_empty(Queue);
+is_empty({_, HL, HR, queue, Queue}) ->
+    is_empty(HL) andalso is_empty(HR) andalso queue:is_empty(Queue);
 is_empty(_) ->
     false.
 
