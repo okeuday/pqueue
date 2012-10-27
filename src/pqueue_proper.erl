@@ -1,5 +1,5 @@
 -module(pqueue_proper).
-
+-ifdef(TEST).
 -include_lib("proper/include/proper.hrl").
 
 -behaviour(proper_statem).
@@ -153,4 +153,4 @@ listq_ppeek([]) ->
 listq_ppeek([{P, [V | _]} | _]) ->
     {value, V, P}.
 
-
+-endif.
