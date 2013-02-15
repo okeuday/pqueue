@@ -13,7 +13,7 @@
 %%%
 %%% BSD LICENSE
 %%% 
-%%% Copyright (c) 2011-2012, Michael Truog <mjtruog at gmail dot com>
+%%% Copyright (c) 2011-2013, Michael Truog <mjtruog at gmail dot com>
 %%% All rights reserved.
 %%% 
 %%% Redistribution and use in source and binary forms, with or without
@@ -48,15 +48,16 @@
 %%% DAMAGE.
 %%%
 %%% @author Michael Truog <mjtruog [at] gmail (dot) com>
-%%% @copyright 2011-2012 Michael Truog
-%%% @version 0.2.0 {@date} {@time}
+%%% @copyright 2011-2013 Michael Truog
+%%% @version 1.2.0 {@date} {@time}
 %%%------------------------------------------------------------------------
 
 -module(pqueue4).
 -author('mjtruog [at] gmail (dot) com').
 
 %% external interface
--export([filter/3,     % O(N)
+-export([filter/2,     % O(N)
+         filter/3,     % O(N)
          in/2,         % O(1)
          in/3,         % O(1)
          is_empty/1,   % O(1)
@@ -109,6 +110,30 @@
       queue(), queue(), queue(), queue(), queue(), queue(), queue(), queue()},
      {queue(), queue(), queue(), queue(), queue(), queue(), queue(), queue(),
       queue(), queue(), queue(), queue(), queue(), queue(), queue(), queue()}}.
+
+%%-------------------------------------------------------------------------
+%% @doc
+%% ===Filter the priority queue.===
+%% O(N)
+%% @end
+%%-------------------------------------------------------------------------
+
+-spec filter(fun((any()) -> boolean()), pqueue4()) -> pqueue4().
+
+filter(F, {empty, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _} = Q)
+    when is_function(F, 1) ->
+    Q;
+filter(F, {Pc, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _} = Q)
+    when is_function(F, 1) ->
+    filter_all(Pc, F, Q).
+
+filter_all(_, _, {_, 0, _, _, _, _, _, _, _, _,
+                  _, _, _, _, _, _, _, _, _} = Q) ->
+    Q;
+filter_all(128, F, Q) ->
+    filter_priority(128, F, Q);
+filter_all(P, F, Q) when is_integer(P) ->
+    filter_all(P + 1, F, filter_priority(P, F, Q)).
 
 %%-------------------------------------------------------------------------
 %% @doc
