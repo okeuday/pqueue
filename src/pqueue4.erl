@@ -551,10 +551,16 @@ test() ->
     true = pqueue4:is_empty(Q165),
     Q166 = pqueue4:new(),
     true = pqueue4:is_queue(Q166),
-    Q167 = pqueue4:in(0, 0, Q166),
-    Q168 = pqueue4:in(1, 0, Q167),
-    Q169 = pqueue4:in(2, 0, Q168),
-    [{0, [0, 1, 2]}] = pqueue4:to_plist(Q169),
+    Q167 = pqueue4:in(6, 1, Q166),
+    Q168 = pqueue4:in(7, 1, Q167),
+    Q169 = pqueue4:in(8, 1, Q168),
+    Q170 = pqueue4:in(3, 0, Q169),
+    Q171 = pqueue4:in(4, 0, Q170),
+    Q172 = pqueue4:in(5, 0, Q171),
+    Q173 = pqueue4:in(0, -1, Q172),
+    Q174 = pqueue4:in(1, -1, Q173),
+    Q175 = pqueue4:in(2, -1, Q174),
+    [{-1, [0, 1, 2]}, {0, [3, 4, 5]}, {1, [6, 7, 8]}] = pqueue4:to_plist(Q175),
     ok.
 
 %%%------------------------------------------------------------------------
