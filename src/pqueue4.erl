@@ -175,7 +175,7 @@ filter(F, P, Q) when is_function(F, 1) ->
 %% @end
 %%-------------------------------------------------------------------------
 
--spec in(term(), pqueue4()) -> pqueue4().
+-spec in(any(), pqueue4()) -> pqueue4().
 
 in(X, Q) ->
     in(X, 0, Q).
@@ -187,7 +187,7 @@ in(X, Q) ->
 %% @end
 %%-------------------------------------------------------------------------
 
--spec in(term(), integer(), pqueue4()) -> pqueue4().
+-spec in(any(), integer(), pqueue4()) -> pqueue4().
 
 in(_, P, _)
     when P < -128; P > 128 ->
@@ -291,7 +291,7 @@ new() ->
 %%-------------------------------------------------------------------------
 
 -spec out(pqueue4()) ->
-    {{'value', term()}, pqueue4()} | {'empty', pqueue4()}.
+    {{'value', any()}, pqueue4()} | {'empty', pqueue4()}.
 
 out({empty, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _} = Q) ->
     {empty, Q};
@@ -306,7 +306,7 @@ out({Pc, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _} = Q) ->
 %%-------------------------------------------------------------------------
 
 -spec out(integer(), pqueue4()) ->
-    {{'value', term()}, pqueue4()} | {'empty', pqueue4()}.
+    {{'value', any()}, pqueue4()} | {'empty', pqueue4()}.
 
 out(P, _)
     when P < -128; P > 128 ->
@@ -325,7 +325,7 @@ out(P, Q) ->
 %%-------------------------------------------------------------------------
 
 -spec pout(pqueue4()) ->
-    {{'value', term(), integer()}, pqueue4()} | {'empty', pqueue4()}.
+    {{'value', any(), integer()}, pqueue4()} | {'empty', pqueue4()}.
 
 pout({empty, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _} = Q) ->
     {empty, Q};
@@ -384,7 +384,7 @@ remove_unique(F, P, Q) when is_function(F, 1) ->
 %% @end
 %%-------------------------------------------------------------------------
 
--spec to_list(pqueue4()) -> list(term()).
+-spec to_list(pqueue4()) -> list().
 
 to_list(Q) ->
     to_list([], out(Q)).
@@ -400,7 +400,7 @@ to_list(L, {{value, Value}, Q}) ->
 %% @end
 %%-------------------------------------------------------------------------
 
--spec to_plist(pqueue4()) -> list({integer(), term()}).
+-spec to_plist(pqueue4()) -> list({integer(), list()}).
 
 to_plist(Q) ->
     to_plist([], [], undefined, pout(Q)).
