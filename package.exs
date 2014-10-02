@@ -10,6 +10,7 @@ defmodule Pqueue.Mixfile do
   end
 
   defp deps do
+    []
   end
 
   defp description do
