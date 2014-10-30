@@ -3,7 +3,7 @@ defmodule Pqueue.Mixfile do
 
   def project do
     [app: :pqueue,
-     version: "1.3.3",
+     version: "1.4.0-rc.4",
      description: description,
      package: package,
      deps: deps]
@@ -18,7 +18,7 @@ defmodule Pqueue.Mixfile do
   end
 
   defp package do
-    [files: ~w(src doc test Makefile rebar.config README.markdown),
+    [files: ~w(src doc test rebar.config README.markdown),
      contributors: ["Michael Truog"],
      licenses: ["BSD"],
      links: %{"GitHub" => "https://github.com/okeuday/pqueue"}]
