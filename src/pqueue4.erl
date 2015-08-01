@@ -92,6 +92,7 @@
 %%% External interface functions
 %%%------------------------------------------------------------------------
 
+-ifdef(ERLANG_OTP_VERSION_16).
 -type pqueue4() ::
     {integer() | 'empty', % current priority
      integer(),           % total size
@@ -128,6 +129,76 @@
       queue(), queue(), queue(), queue(), queue(), queue(), queue(), queue()},
      {queue(), queue(), queue(), queue(), queue(), queue(), queue(), queue(),
       queue(), queue(), queue(), queue(), queue(), queue(), queue(), queue()}}.
+-else.
+-type pqueue4() ::
+    {integer() | 'empty', % current priority
+     integer(),           % total size
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     queue:queue(),
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()},
+     {queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue(),
+      queue:queue(), queue:queue(), queue:queue(), queue:queue()}}.
+-endif.
 
 %%-------------------------------------------------------------------------
 %% @doc
