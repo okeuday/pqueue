@@ -6,7 +6,7 @@ defmodule Pqueue.Mixfile do
 
   def project do
     [app: :pqueue,
-     version: "1.7.1",
+     version: "1.7.2",
      description: description(),
      package: package(),
      deps: deps()]
