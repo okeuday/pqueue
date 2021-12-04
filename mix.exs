@@ -6,7 +6,7 @@ defmodule Pqueue.Mixfile do
 
   def project do
     [app: :pqueue,
-     version: "2.0.2",
+     version: "2.0.3",
      language: :erlang,
      erlc_options: [
        {:d, :erlang.list_to_atom('ERLANG_OTP_VERSION_' ++ :erlang.system_info(:otp_release))},
